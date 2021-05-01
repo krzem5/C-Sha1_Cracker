@@ -11,7 +11,7 @@ else:
 	for r,_,fl in os.walk("build"):
 		for f in fl:
 			os.remove(os.path.join(r,f))
-if ("--generate"):
+if ("--generate" in sys.argv):
 	print("Generating SHA1 Checking Code...")
 	generate()
 tmp=os.getcwd()

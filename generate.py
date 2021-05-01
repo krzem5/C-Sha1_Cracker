@@ -125,7 +125,7 @@ def _gen_sha1_check_code(il):
 		return eq
 	def _print(eq,q=0):
 		def _o(s,q,t):
-			return (f"({s})" if q==1 or (q==2 and t not in [TYPE_SUM,TYPE_SUB]) else s)
+			return (f"({s})" if q==1 or (q==2 and t not in [TYPE_SUM]) else s)
 		if (eq["t"]==TYPE_CONST):
 			return str(eq["v"])
 		if (eq["t"] in [TYPE_REF,TYPE_OUTPUT,TYPE_INPUT]):
@@ -183,7 +183,7 @@ def _gen_sha1_check_code(il):
 		if (len(eq0["_vc"]|eq1["_vc"])==1):
 			v=next(iter(eq0["_vc"]|eq1["_vc"]))
 			st,o=_basic_solve(v,(eq0,eq1))
-			if (st==True):
+			if (st is True):
 				VARS[v]=o[1]
 				return
 			else:
@@ -191,13 +191,13 @@ def _gen_sha1_check_code(il):
 		EQL.append((eq0,eq1))
 	def _add_eq_v(v,eq,f=False):
 		eq=_shorten(eq)
-		if (f==True):
+		if (f is True):
 			VARS[v]=eq
 			return
 		v_eq=_shorten({"t":TYPE_REF,"i":v},ig={v})
 		if ((eq["t"]==TYPE_REF and eq["i"][0]=="o") or len(eq["_vc"])==1):
 			st,o=_basic_solve(v,(v_eq,eq))
-			if (st==True):
+			if (st is True):
 				VARS[v]=o[1]
 			else:
 				EQL.append(o)
@@ -546,7 +546,7 @@ def _gen_sha1_check_code(il):
 			if (len(vc)==1):
 				v=vc.pop()
 				st,o=_basic_solve(v,(eq0,eq1))
-				if (st==True):
+				if (st is True):
 					VARS[v]=o[1]
 					e=False
 					continue
