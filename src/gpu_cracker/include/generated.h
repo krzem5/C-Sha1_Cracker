@@ -21,7 +21,7 @@ void setup_hash(sha1_t sha1){
 
 
 __forceinline__ __device__ uint8_t _chk_1(uint32_t o0){
-		o0=o0<<24;
+	o0=o0<<24;
 	uint32_t v0=o0|8388608;
 	v0=v0+2679412915;
 	uint32_t v1=BIT_ROT_FUNC(v0,5);
@@ -833,11 +833,13 @@ __forceinline__ __device__ uint8_t _chk_1(uint32_t o0){
 	v11=v12+3395469782;
 	v2=v17+v11;
 	v5=BIT_ROT_FUNC(v16,30);
+	if (__h[4]!=v5+3285377520){return 0;}
 	v3=v5^v9;
 	v6=v0^v3;
 	v13=v6+v2;
 	v4=BIT_ROT_FUNC(v7,5);
 	v15=v4+v13;
+	if (__h[1]!=v15+4023233417){return 0;}
 	v8=v10^3362688;
 	v14=BIT_ROT_FUNC(o0,22);
 	v1=v14|8192;
@@ -845,24 +847,22 @@ __forceinline__ __device__ uint8_t _chk_1(uint32_t o0){
 	v17=v12+3395469782;
 	v11=v9+v17;
 	v16=BIT_ROT_FUNC(v0,30);
+	if (__h[3]!=v16+271733878){return 0;}
 	v3=v16^v5;
 	v2=v7^v3;
 	v6=v2+v11;
 	v13=BIT_ROT_FUNC(v15,5);
 	v4=v13+v6;
 	if (__h[0]!=v4+1732584193){return 0;}
-	if (__h[1]!=v15+4023233417){return 0;}
 	v10=BIT_ROT_FUNC(v7,30);
 	if (__h[2]!=v10+2562383102){return 0;}
-	if (__h[3]!=v16+271733878){return 0;}
-	if (__h[4]!=v5+3285377520){return 0;}
 	return 1;
 }
 
 
 
 __forceinline__ __device__ uint8_t _chk_2(uint32_t o0){
-		o0=o0<<16;
+	o0=o0<<16;
 	uint32_t v0=o0|32768;
 	v0=v0+2679412915;
 	uint32_t v1=BIT_ROT_FUNC(v0,5);
@@ -1674,11 +1674,13 @@ __forceinline__ __device__ uint8_t _chk_2(uint32_t o0){
 	v11=v12+3395469782;
 	v2=v17+v11;
 	v5=BIT_ROT_FUNC(v16,30);
+	if (__h[4]!=v5+3285377520){return 0;}
 	v3=v5^v9;
 	v6=v0^v3;
 	v13=v6+v2;
 	v4=BIT_ROT_FUNC(v7,5);
 	v15=v4+v13;
+	if (__h[1]!=v15+4023233417){return 0;}
 	v8=v10^6725376;
 	v14=BIT_ROT_FUNC(o0,22);
 	v1=v14|32;
@@ -1686,24 +1688,22 @@ __forceinline__ __device__ uint8_t _chk_2(uint32_t o0){
 	v17=v12+3395469782;
 	v11=v9+v17;
 	v16=BIT_ROT_FUNC(v0,30);
+	if (__h[3]!=v16+271733878){return 0;}
 	v3=v16^v5;
 	v2=v7^v3;
 	v6=v2+v11;
 	v13=BIT_ROT_FUNC(v15,5);
 	v4=v13+v6;
 	if (__h[0]!=v4+1732584193){return 0;}
-	if (__h[1]!=v15+4023233417){return 0;}
 	v10=BIT_ROT_FUNC(v7,30);
 	if (__h[2]!=v10+2562383102){return 0;}
-	if (__h[3]!=v16+271733878){return 0;}
-	if (__h[4]!=v5+3285377520){return 0;}
 	return 1;
 }
 
 
 
 __forceinline__ __device__ uint8_t _chk_3(uint32_t o0){
-		o0=o0<<8;
+	o0=o0<<8;
 	uint32_t v0=o0|128;
 	v0=v0+2679412915;
 	uint32_t v1=BIT_ROT_FUNC(v0,5);
@@ -2515,11 +2515,13 @@ __forceinline__ __device__ uint8_t _chk_3(uint32_t o0){
 	v11=v12+3395469782;
 	v2=v17+v11;
 	v5=BIT_ROT_FUNC(v16,30);
+	if (__h[4]!=v5+3285377520){return 0;}
 	v3=v5^v9;
 	v6=v0^v3;
 	v13=v6+v2;
 	v4=BIT_ROT_FUNC(v7,5);
 	v15=v4+v13;
+	if (__h[1]!=v15+4023233417){return 0;}
 	v8=v10^5623936;
 	v14=BIT_ROT_FUNC(o0,22);
 	v1=v14|536870912;
@@ -2527,24 +2529,22 @@ __forceinline__ __device__ uint8_t _chk_3(uint32_t o0){
 	v17=v12+3395469782;
 	v11=v9+v17;
 	v16=BIT_ROT_FUNC(v0,30);
+	if (__h[3]!=v16+271733878){return 0;}
 	v3=v16^v5;
 	v2=v7^v3;
 	v6=v2+v11;
 	v13=BIT_ROT_FUNC(v15,5);
 	v4=v13+v6;
 	if (__h[0]!=v4+1732584193){return 0;}
-	if (__h[1]!=v15+4023233417){return 0;}
 	v10=BIT_ROT_FUNC(v7,30);
 	if (__h[2]!=v10+2562383102){return 0;}
-	if (__h[3]!=v16+271733878){return 0;}
-	if (__h[4]!=v5+3285377520){return 0;}
 	return 1;
 }
 
 
 
 __forceinline__ __device__ uint8_t _chk_4(uint32_t o0){
-		uint32_t v0=o0+2679412915;
+	uint32_t v0=o0+2679412915;
 	uint32_t v1=BIT_ROT_FUNC(v0,5);
 	v1=v1+3870346509;
 	uint32_t v2=v0&2079550178;
@@ -3342,28 +3342,28 @@ __forceinline__ __device__ uint8_t _chk_4(uint32_t o0){
 	v14=v8+3395469782;
 	v3=v11+v14;
 	v7=BIT_ROT_FUNC(v4,30);
+	if (__h[4]!=v7+3285377520){return 0;}
 	v10=v7^v17;
 	v13=v12^v10;
 	v6=v13+v3;
 	v16=BIT_ROT_FUNC(v2,5);
 	v0=v16+v6;
+	if (__h[1]!=v0+4023233417){return 0;}
 	v15=v9^13074112;
 	v5=BIT_ROT_FUNC(o0,22);
 	v1=v5^v15;
 	v8=v1+3395469782;
 	v11=v17+v8;
 	v14=BIT_ROT_FUNC(v12,30);
+	if (__h[3]!=v14+271733878){return 0;}
 	v4=v14^v7;
 	v10=v2^v4;
 	v3=v10+v11;
 	v13=BIT_ROT_FUNC(v0,5);
 	v6=v13+v3;
 	if (__h[0]!=v6+1732584193){return 0;}
-	if (__h[1]!=v0+4023233417){return 0;}
 	v16=BIT_ROT_FUNC(v2,30);
 	if (__h[2]!=v16+2562383102){return 0;}
-	if (__h[3]!=v14+271733878){return 0;}
-	if (__h[4]!=v7+3285377520){return 0;}
 	return 1;
 }
 

@@ -128,8 +128,10 @@ def _gen_sha1_check_code(il):
 			return (f"({s})" if q==1 or (q==2 and t not in [TYPE_SUM]) else s)
 		if (eq["t"]==TYPE_CONST):
 			return str(eq["v"])
-		if (eq["t"] in [TYPE_REF,TYPE_OUTPUT,TYPE_INPUT]):
-			return eq['i']
+		if (eq["t"] in [TYPE_REF,TYPE_OUTPUT]):
+			return eq["i"]
+		if (eq["t"]==TYPE_INPUT):
+			return eq["v"]
 		if (eq["t"]==TYPE_ROT_LEFT):
 			return f"l{eq['i']}({_print(eq['v'],q=0)})"
 		if (eq["t"]==TYPE_SHIFT_LEFT):
@@ -582,6 +584,22 @@ def _gen_sha1_check_code(il):
 					if (k["i"] not in v_rm):
 						v_rm[k["i"]]=[i,i]
 					v_rm[k["i"]][1]=i
+	for i,(a,b) in enumerate(DIV_EQL):
+		if (a["t"] in [TYPE_CONST,TYPE_OUTPUT,TYPE_INPUT]):
+			j=0
+			if (b["t"] in [TYPE_ROT_LEFT,TYPE_SHIFT_LEFT]):
+				j=max(j,v_rm[b["v"]["i"]][0]+1)
+			else:
+				for k in b["l"]:
+					if (k["t"]!=TYPE_CONST):
+						j=max(j,v_rm[k["i"]][0]+1)
+			if (i!=j):
+				for k,v in v_rm.items():
+					if (v[0]>j and v[0]<i):
+						v[0]+=1
+					if (v[1]>j and v[1]<i):
+						v[1]+=1
+				DIV_EQL=DIV_EQL[:j]+[(a,b)]+DIV_EQL[j:i]+DIV_EQL[i+1:]
 	vc=0
 	vl=[]
 	vm={f"o{i}":f"o{i}" for i in range(0,rv)}
@@ -658,5 +676,5 @@ def generate():
 		f3=_gen_sha1_check_code(3)
 		f4=_gen_sha1_check_code(4)
 		hf_cpu.write("#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <cpu_cracker.h>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n\n\n\nvoid setup_hash(uint32_t h0,uint32_t h1,uint32_t h2,uint32_t h3,uint32_t h4);\n\n\n\nuint8_t _chk_1(uint32_t o0);\n\n\n\nuint8_t _chk_2(uint32_t o0);\n\n\n\nuint8_t _chk_3(uint32_t o0);\n\n\n\nuint8_t _chk_4(uint32_t o0);\n\n\n\n#endif")
-		f_gpu.write(f"#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <gpu_cracker.h>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n\n\n\n__device__ uint32_t __h[5];\n\n\n\nvoid setup_hash(sha1_t sha1){{\n\tCUDA_CALL(cudaMemcpyToSymbol(__h,sha1.h,5*sizeof(uint32_t)));\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_1(uint32_t o0){{\n\t{f1}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_2(uint32_t o0){{\n\t{f2}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_3(uint32_t o0){{\n\t{f3}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_4(uint32_t o0){{\n\t{f4}\treturn 1;\n}}\n\n\n\n#endif\n")
-		cf_cpu.write(f"#include <generated.h>\n#include <cpu_cracker.h>\n#include <stdint.h>\n\n\n\nuint32_t __h[5];\n\n\n\nvoid setup_hash(uint32_t h0,uint32_t h1,uint32_t h2,uint32_t h3,uint32_t h4){{\n\t*__h=h0;\n\t*(__h+1)=h1;\n\t*(__h+2)=h2;\n\t*(__h+3)=h3;\n\t*(__h+4)=h4;\n}}\n\n\n\nuint8_t _chk_1(uint32_t o0){{\n\t{f1}\treturn 1;\n}}\n\n\n\nuint8_t _chk_2(uint32_t o0){{\n\t{f2}\treturn 1;\n}}\n\n\n\nuint8_t _chk_3(uint32_t o0){{\n\t{f3}\treturn 1;\n}}\n\n\n\nuint8_t _chk_4(uint32_t o0){{\n\t{f4}\treturn 1;\n}}\n")
+		f_gpu.write(f"#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <gpu_cracker.h>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n\n\n\n__device__ uint32_t __h[5];\n\n\n\nvoid setup_hash(sha1_t sha1){{\n\tCUDA_CALL(cudaMemcpyToSymbol(__h,sha1.h,5*sizeof(uint32_t)));\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n\n\n\n#endif\n")
+		cf_cpu.write(f"#include <generated.h>\n#include <cpu_cracker.h>\n#include <stdint.h>\n\n\n\nuint32_t __h[5];\n\n\n\nvoid setup_hash(uint32_t h0,uint32_t h1,uint32_t h2,uint32_t h3,uint32_t h4){{\n\t*__h=h0;\n\t*(__h+1)=h1;\n\t*(__h+2)=h2;\n\t*(__h+3)=h3;\n\t*(__h+4)=h4;\n}}\n\n\n\nuint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\nuint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\nuint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\nuint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n")
