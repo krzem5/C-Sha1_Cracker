@@ -1,14 +1,15 @@
-def _gen_sha1_check_code(il):
+def _gen_sha1_check_code(il,dt_v="dt",g_v="h",h_v="h"):
 	TYPE_CONST=0
 	TYPE_REF=1
 	TYPE_OUTPUT=2
 	TYPE_INPUT=3
-	TYPE_ROT_LEFT=4
-	TYPE_SHIFT_LEFT=5
-	TYPE_SUM=6
-	TYPE_XOR=7
-	TYPE_AND=8
-	TYPE_OR=9
+	TYPE_RAW_INPUT=4
+	TYPE_ROT_LEFT=5
+	TYPE_SHIFT_LEFT=6
+	TYPE_SUM=7
+	TYPE_XOR=8
+	TYPE_AND=9
+	TYPE_OR=10
 	def _set_or(l):
 		o=set()
 		for k in l:
@@ -30,10 +31,18 @@ def _gen_sha1_check_code(il):
 		elif (eq["t"]==TYPE_ROT_LEFT):
 			eq["v"]=_shorten(eq["v"],ig)
 			eq["_vc"]=eq["v"]["_vc"]
-			if (eq["v"]["t"]==TYPE_CONST):
+			if (eq["i"]==0):
+				return eq["v"]
+			elif (eq["v"]["t"]==TYPE_CONST):
 				return {"t":TYPE_CONST,"v":((eq["v"]["v"]<<eq["i"])|(eq["v"]["v"]>>(32-eq["i"])))&0xffffffff,"_vc":set()}
+			elif (eq["v"]["t"]==TYPE_INPUT and "_TMP_FIX" not in eq["v"]):
+				INPUT_VARS.append({"t":TYPE_ROT_LEFT,"v":INPUT_VARS[eq["v"]["i"]],"i":eq["i"]})
+				return {"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set(),"_TMP_FIX":1}
 			elif (eq["v"]["t"]==TYPE_ROT_LEFT):
-				eq={"t":TYPE_ROT_LEFT,"i":(eq["i"]+eq["v"]["i"])%32,"v":eq["v"]["v"],"_vc":eq["_vc"]}
+				i=(eq["i"]+eq["v"]["i"])%32
+				if (i==0):
+					return eq["v"]["v"]
+				return {"t":TYPE_ROT_LEFT,"i":i,"v":eq["v"]["v"],"_vc":eq["_vc"]}
 			elif (eq["v"]["t"] in [TYPE_XOR,TYPE_AND,TYPE_OR]):
 				return _shorten({"t":eq["v"]["t"],"l":[{"t":TYPE_ROT_LEFT,"i":eq["i"],"v":k} for k in eq["v"]["l"]],"_vc":_set_or([k["_vc"] for k in eq["v"]["l"]])},ig)
 			return eq
@@ -43,37 +52,61 @@ def _gen_sha1_check_code(il):
 			return eq
 		elif (eq["t"]==TYPE_SUM):
 			l=[]
-			cv=-1
+			cv=None
 			i=0
 			while (i<len(eq["l"])):
 				k=_shorten(eq["l"][i],ig)
 				if (k["t"]==TYPE_CONST):
-					if (cv==-1):
-						cv=k["v"]
+					if (cv is None):
+						cv={"t":TYPE_CONST,"v":k["v"],"_vc":set()}
+					elif (cv["t"]==TYPE_CONST):
+						cv["v"]=(cv["v"]+k["v"])&0xffffffff
 					else:
-						cv=_op(cv,k["v"],eq["t"])
+						INPUT_VARS.append({"t":TYPE_SUM,"l":[INPUT_VARS[cv["i"]],{"t":TYPE_CONST,"v":k["v"]}]})
+						cv={"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set()}
+				elif (k["t"]==TYPE_INPUT):
+					if (cv is None):
+						cv={"t":TYPE_INPUT,"i":k["i"],"_vc":set()}
+					elif (cv["t"]==TYPE_CONST):
+						INPUT_VARS.append({"t":TYPE_SUM,"l":[INPUT_VARS[k["i"]],{"t":TYPE_CONST,"v":cv["v"]}]})
+						cv={"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set()}
+					else:
+						INPUT_VARS.append({"t":TYPE_XOR,"l":[INPUT_VARS[cv["i"]],INPUT_VARS[k["i"]]]})
+						cv={"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set()}
 				elif (k["t"]==TYPE_SUM):
 					eq["l"].extend(k["l"])
 				else:
 					l.append(k)
 				i+=1
 			if (len(l)==0):
-				return {"t":TYPE_CONST,"v":cv,"_vc":set()}
-			if (len(l)==1 and cv<=0):
+				return cv
+			if (len(l)==1 and cv is None):
 				return l[0]
-			return {"t":TYPE_SUM,"l":l+([{"t":TYPE_CONST,"v":cv,"_vc":set()}] if cv>0 else []),"_vc":_set_or([e["_vc"] for e in l])}
+			return {"t":TYPE_SUM,"l":l+([cv] if cv is not None else []),"_vc":_set_or([e["_vc"] for e in l])}
 		elif (eq["t"]==TYPE_XOR):
 			l=[]
 			hl=[]
-			cv=-1
+			cv=None
 			i=0
 			while (i<len(eq["l"])):
 				k=_shorten(eq["l"][i],ig)
 				if (k["t"]==TYPE_CONST):
-					if (cv==-1):
-						cv=k["v"]
+					if (cv is None):
+						cv={"t":TYPE_CONST,"v":k["v"],"_vc":set()}
+					elif (cv["t"]==TYPE_CONST):
+						cv["v"]=(cv["v"]^k["v"])&0xffffffff
 					else:
-						cv=_op(cv,k["v"],eq["t"])
+						INPUT_VARS.append({"t":TYPE_XOR,"l":[INPUT_VARS[cv["i"]],{"t":TYPE_CONST,"v":k["v"]}]})
+						cv={"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set()}
+				elif (k["t"]==TYPE_INPUT):
+					if (cv is None):
+						cv={"t":TYPE_INPUT,"i":k["i"],"_vc":set()}
+					elif (cv["t"]==TYPE_CONST):
+						INPUT_VARS.append({"t":TYPE_SUM,"l":[INPUT_VARS[k["i"]],{"t":TYPE_CONST,"v":cv["v"]}]})
+						cv={"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set()}
+					else:
+						INPUT_VARS.append({"t":TYPE_XOR,"l":[INPUT_VARS[cv["i"]],INPUT_VARS[k["i"]]]})
+						cv={"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set()}
 				elif (k["t"]==TYPE_XOR):
 					eq["l"].extend(k["l"])
 				else:
@@ -86,10 +119,10 @@ def _gen_sha1_check_code(il):
 						hl.remove(h)
 				i+=1
 			if (len(l)==0):
-				return {"t":TYPE_CONST,"v":cv,"_vc":set()}
-			if (len(l)==1 and cv<=0):
+				return cv
+			if (len(l)==1 and cv is None):
 				return l[0]
-			return {"t":TYPE_XOR,"l":l+([{"t":TYPE_CONST,"v":cv,"_vc":set()}] if cv>0 else []),"_vc":_set_or([e["_vc"] for e in l])}
+			return {"t":TYPE_XOR,"l":l+([cv] if cv is not None else []),"_vc":_set_or([e["_vc"] for e in l])}
 		elif (eq["t"] in [TYPE_AND,TYPE_OR]):
 			l=[]
 			hl=[]
@@ -131,9 +164,11 @@ def _gen_sha1_check_code(il):
 		if (eq["t"] in [TYPE_REF,TYPE_OUTPUT]):
 			return eq["i"]
 		if (eq["t"]==TYPE_INPUT):
-			return eq["v"]
+			return f"HEADER{eq['i']}"
+		if (eq["t"]==TYPE_RAW_INPUT):
+			return f"{dt_v}[{eq['i']}]"
 		if (eq["t"]==TYPE_ROT_LEFT):
-			return f"l{eq['i']}({_print(eq['v'],q=0)})"
+			return f"BIT_ROT_FUNC_SETUP({_print(eq['v'],q=0)},{eq['i']})"
 		if (eq["t"]==TYPE_SHIFT_LEFT):
 			return f"({_print(eq['v'],q=1)}<<{eq['i']})"
 		if (eq["t"]==TYPE_SUM):
@@ -154,9 +189,15 @@ def _gen_sha1_check_code(il):
 			elif (eq0["t"]==TYPE_SHIFT_LEFT):
 				print("Basic Solve: TYPE_SHIFT_LEFT")
 				break
-			elif (eq0["t"]==TYPE_SUM and eq0["l"][-1]["t"]==TYPE_CONST):
-				if (eq1["t"]==TYPE_CONST):
-					eq1["v"]=(eq1["v"]-eq0["l"][-1]["v"]+1+0xffffffff)&0xffffffff
+			elif (eq0["t"]==TYPE_SUM):
+				if (eq0["l"][-1]["t"]==TYPE_CONST and eq1["t"]==TYPE_CONST):
+					eq1["v"]=(eq1["v"]+(0x100000000-eq0["l"][-1]["v"]))&0xffffffff
+					eq0["l"]=eq0["l"][:-1]
+					if (len(eq0["l"])==1):
+						eq0=eq0["l"][0]
+				elif (eq0["l"][-1]["t"]==TYPE_CONST and eq1["t"]==TYPE_INPUT):
+					INPUT_VARS.append({"t":TYPE_SUM,"l":[INPUT_VARS[eq1["i"]],{"t":TYPE_CONST,"v":(0x100000000-eq0["l"][-1]["v"])&0xffffffff}]})
+					eq1["i"]=len(INPUT_VARS)-1
 					eq0["l"]=eq0["l"][:-1]
 					if (len(eq0["l"])==1):
 						eq0=eq0["l"][0]
@@ -526,11 +567,12 @@ def _gen_sha1_check_code(il):
 		_add_eq_v(f"c{(j+1)*81}",{"t":TYPE_SUM,"l":[{"t":TYPE_REF,"i":f"c{j*81}"},{"t":TYPE_REF,"i":f"c{(j+1)*81-1}"}]})
 		_add_eq_v(f"d{(j+1)*81}",{"t":TYPE_SUM,"l":[{"t":TYPE_REF,"i":f"d{j*81}"},{"t":TYPE_REF,"i":f"d{(j+1)*81-1}"}]})
 		_add_eq_v(f"e{(j+1)*81}",{"t":TYPE_SUM,"l":[{"t":TYPE_REF,"i":f"e{j*81}"},{"t":TYPE_REF,"i":f"e{(j+1)*81-1}"}]})
-	_add_eq({"t":TYPE_INPUT,"v":"__h[0]"},{"t":TYPE_REF,"i":f"a{cl*81}"})
-	_add_eq({"t":TYPE_INPUT,"v":"__h[1]"},{"t":TYPE_REF,"i":f"b{cl*81}"})
-	_add_eq({"t":TYPE_INPUT,"v":"__h[2]"},{"t":TYPE_REF,"i":f"c{cl*81}"})
-	_add_eq({"t":TYPE_INPUT,"v":"__h[3]"},{"t":TYPE_REF,"i":f"d{cl*81}"})
-	_add_eq({"t":TYPE_INPUT,"v":"__h[4]"},{"t":TYPE_REF,"i":f"e{cl*81}"})
+	INPUT_VARS=[{"t":TYPE_RAW_INPUT,"i":0},{"t":TYPE_RAW_INPUT,"i":1},{"t":TYPE_RAW_INPUT,"i":2},{"t":TYPE_RAW_INPUT,"i":3},{"t":TYPE_RAW_INPUT,"i":4}]
+	_add_eq({"t":TYPE_INPUT,"i":0},{"t":TYPE_REF,"i":f"a{cl*81}"})
+	_add_eq({"t":TYPE_INPUT,"i":1},{"t":TYPE_REF,"i":f"b{cl*81}"})
+	_add_eq({"t":TYPE_INPUT,"i":2},{"t":TYPE_REF,"i":f"c{cl*81}"})
+	_add_eq({"t":TYPE_INPUT,"i":3},{"t":TYPE_REF,"i":f"d{cl*81}"})
+	_add_eq({"t":TYPE_INPUT,"i":4},{"t":TYPE_REF,"i":f"e{cl*81}"})
 	rv=cl*16
 	for i in range(0,cl*64,4):
 		if (dt[i] is not None and dt[i+1] is not None and dt[i+2] is not None and dt[i+3] is not None):
@@ -569,37 +611,38 @@ def _gen_sha1_check_code(il):
 		b,ti=_divide_equation(b,ti,tv_m)
 		DIV_EQL.append((a,b))
 	v_rm={}
+	hvm={}
+	hvi=0
 	for i,(a,b) in enumerate(DIV_EQL):
-		if (a["t"] not in [TYPE_CONST,TYPE_OUTPUT,TYPE_INPUT]):
+		if (a["t"]==TYPE_INPUT):
+			if (a["i"] not in hvm):
+				hvm[a["i"]]=hvi
+				INPUT_VARS[a["i"]]=_shorten(INPUT_VARS[a["i"]])
+				hvi+=1
+		elif (a["t"] not in [TYPE_CONST,TYPE_OUTPUT]):
 			if (a["i"] not in v_rm):
 				v_rm[a["i"]]=[i,i]
 			v_rm[a["i"]][1]=i
 		if (b["t"] in [TYPE_ROT_LEFT,TYPE_SHIFT_LEFT]):
-			if (b["v"]["i"] not in v_rm):
-				v_rm[b["v"]["i"]]=[i,i]
-			v_rm[b["v"]["i"]][1]=i
+			if (b["v"]["t"]!=TYPE_INPUT):
+				if (b["v"]["i"] not in v_rm):
+					v_rm[b["v"]["i"]]=[i,i]
+				v_rm[b["v"]["i"]][1]=i
+			elif (b["v"]["i"] not in hvm):
+				hvm[b["v"]["i"]]=hvi
+				INPUT_VARS[b["v"]["i"]]=_shorten(INPUT_VARS[b["v"]["i"]])
+				hvi+=1
 		else:
 			for k in b["l"]:
-				if (k["t"]!=TYPE_CONST):
+				if (k["t"]==TYPE_INPUT):
+					if (k["i"] not in hvm):
+						hvm[k["i"]]=hvi
+						INPUT_VARS[k["i"]]=_shorten(INPUT_VARS[k["i"]])
+						hvi+=1
+				elif (k["t"]!=TYPE_CONST):
 					if (k["i"] not in v_rm):
 						v_rm[k["i"]]=[i,i]
 					v_rm[k["i"]][1]=i
-	for i,(a,b) in enumerate(DIV_EQL):
-		if (a["t"] in [TYPE_CONST,TYPE_OUTPUT,TYPE_INPUT]):
-			j=0
-			if (b["t"] in [TYPE_ROT_LEFT,TYPE_SHIFT_LEFT]):
-				j=max(j,v_rm[b["v"]["i"]][0]+1)
-			else:
-				for k in b["l"]:
-					if (k["t"]!=TYPE_CONST):
-						j=max(j,v_rm[k["i"]][0]+1)
-			if (i!=j):
-				for k,v in v_rm.items():
-					if (v[0]>j and v[0]<i):
-						v[0]+=1
-					if (v[1]>j and v[1]<i):
-						v[1]+=1
-				DIV_EQL=DIV_EQL[:j]+[(a,b)]+DIV_EQL[j:i]+DIV_EQL[i+1:]
 	vc=0
 	vl=[]
 	vm={f"o{i}":f"o{i}" for i in range(0,rv)}
@@ -628,9 +671,15 @@ def _gen_sha1_check_code(il):
 			rm[v[1]].append(vm[k])
 			o+=f"{vm[k]}="
 		else:
-			o+=f"if ({a['v']}!="
+			if (a["t"]==TYPE_INPUT):
+				o+=f"if ({h_v}[{hvm[a['i']]}]!="
+			else:
+				o+=f"if ({a['v']}!="
 		if (b["t"]==TYPE_ROT_LEFT):
-			o+=f"BIT_ROT_FUNC({vm[b['v']['i']]},{b['i']})"
+			if (b["v"]["t"]==TYPE_INPUT):
+				o+=f"BIT_ROT_FUNC_CHECK({h_v}[{hvm[b['v']['i']]}],{b['i']})"
+			else:
+				o+=f"BIT_ROT_FUNC_CHECK({vm[b['v']['i']]},{b['i']})"
 		elif (b["t"]==TYPE_SHIFT_LEFT):
 			o+=f"{vm[b['v']['i']]}<<{b['i']}"
 		elif (b["t"]==TYPE_SUM):
@@ -638,6 +687,10 @@ def _gen_sha1_check_code(il):
 				o+=f"{vm[b['l'][1]['i']]}+{b['l'][0]['v']}"
 			elif (b["l"][1]["t"]==TYPE_CONST):
 				o+=f"{vm[b['l'][0]['i']]}+{b['l'][1]['v']}"
+			elif (b["l"][0]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][1]['i']]}+{h_v}[{hvm[b['l'][0]['i']]}]"
+			elif (b["l"][1]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][0]['i']]}+{h_v}[{hvm[b['l'][1]['i']]}]"
 			else:
 				o+=f"{vm[b['l'][0]['i']]}+{vm[b['l'][1]['i']]}"
 		elif (b["t"]==TYPE_XOR):
@@ -645,6 +698,10 @@ def _gen_sha1_check_code(il):
 				o+=f"{vm[b['l'][1]['i']]}^{b['l'][0]['v']}"
 			elif (b["l"][1]["t"]==TYPE_CONST):
 				o+=f"{vm[b['l'][0]['i']]}^{b['l'][1]['v']}"
+			elif (b["l"][0]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][1]['i']]}^{h_v}[{hvm[b['l'][0]['i']]}]"
+			elif (b["l"][1]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][0]['i']]}^{h_v}[{hvm[b['l'][1]['i']]}]"
 			else:
 				o+=f"{vm[b['l'][0]['i']]}^{vm[b['l'][1]['i']]}"
 		elif (b["t"]==TYPE_AND):
@@ -652,6 +709,10 @@ def _gen_sha1_check_code(il):
 				o+=f"{vm[b['l'][1]['i']]}&{b['l'][0]['v']}"
 			elif (b["l"][1]["t"]==TYPE_CONST):
 				o+=f"{vm[b['l'][0]['i']]}&{b['l'][1]['v']}"
+			elif (b["l"][0]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][1]['i']]}&{h_v}[{hvm[b['l'][0]['i']]}]"
+			elif (b["l"][1]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][0]['i']]}&{h_v}[{hvm[b['l'][1]['i']]}]"
 			else:
 				o+=f"{vm[b['l'][0]['i']]}&{vm[b['l'][1]['i']]}"
 		elif (b["t"]==TYPE_OR):
@@ -659,22 +720,26 @@ def _gen_sha1_check_code(il):
 				o+=f"{vm[b['l'][1]['i']]}|{b['l'][0]['v']}"
 			elif (b["l"][1]["t"]==TYPE_CONST):
 				o+=f"{vm[b['l'][0]['i']]}|{b['l'][1]['v']}"
+			elif (b["l"][0]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][1]['i']]}|{h_v}[{hvm[b['l'][0]['i']]}]"
+			elif (b["l"][1]["t"]==TYPE_INPUT):
+				o+=f"{vm[b['l'][0]['i']]}|{h_v}[{hvm[b['l'][1]['i']]}]"
 			else:
 				o+=f"{vm[b['l'][0]['i']]}|{vm[b['l'][1]['i']]}"
 		if (a["t"] not in [TYPE_CONST,TYPE_INPUT]):
 			o+=";\n"
 		else:
 			o+="){return 0;}\n"
-	return o
+	return (hvi,"\n\t".join([f"{g_v}[{v}]={_print(INPUT_VARS[k])};" for k,v in hvm.items()]),o)
 
 
 
 def generate():
-	with open("src/cpu_cracker/include/generated.h","w") as hf_cpu,open("src/cpu_cracker/generated.c","w") as cf_cpu,open("src/gpu_cracker/include/generated.h","w") as f_gpu:
-		f1=_gen_sha1_check_code(1)
-		f2=_gen_sha1_check_code(2)
-		f3=_gen_sha1_check_code(3)
-		f4=_gen_sha1_check_code(4)
+	with open("src/cpu_cracker/include/generated.h","w") as hf_cpu,open("src/cpu_cracker/generated.c","w") as cf_cpu,open("src/gpu_cracker/include/generated.cuh","w") as f_gpu:
+		hc1,hf1,f1=_gen_sha1_check_code(1,dt_v="sha1.h",g_v="tmp",h_v="__h4")
+		_,_,f2=_gen_sha1_check_code(2,dt_v="sha1.h",g_v="tmp",h_v="__h4")
+		_,_,f3=_gen_sha1_check_code(3,dt_v="sha1.h",g_v="tmp",h_v="__h4")
+		_,_,f4=_gen_sha1_check_code(4,dt_v="sha1.h",g_v="tmp",h_v="__h4")
 		hf_cpu.write("#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <cpu_cracker.h>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n\n\n\nvoid setup_hash(uint32_t h0,uint32_t h1,uint32_t h2,uint32_t h3,uint32_t h4);\n\n\n\nuint8_t _chk_1(uint32_t o0);\n\n\n\nuint8_t _chk_2(uint32_t o0);\n\n\n\nuint8_t _chk_3(uint32_t o0);\n\n\n\nuint8_t _chk_4(uint32_t o0);\n\n\n\n#endif")
-		f_gpu.write(f"#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <gpu_cracker.h>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n\n\n\n__device__ uint32_t __h[5];\n\n\n\nvoid setup_hash(sha1_t sha1){{\n\tCUDA_CALL(cudaMemcpyToSymbol(__h,sha1.h,5*sizeof(uint32_t)));\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n\n\n\n#endif\n")
+		f_gpu.write(f"#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <gpu_cracker.cuh>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n#define _SETUP_HASH_CONCAT(l) _stp_ ## l\n#define SETUP_HASH(l,sha1) _SETUP_HASH_CONCAT(l)(sha1)\n#define _stp_1(sha1) _stp_4(sha1)\n#define _stp_2(sha1) _stp_4(sha1)\n#define _stp_3(sha1) _stp_4(sha1)\n\n\n\n__device__ uint32_t __h4[{hc1}];\n\n\n\nvoid _stp_4(sha1_t sha1){{\n\tuint32_t tmp[{hc1}];\n\t{hf1}\n\tCUDA_CALL(cudaMemcpyToSymbol(__h4,tmp,{hc1}*sizeof(uint32_t)));\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n\n\n\n#endif\n")
 		cf_cpu.write(f"#include <generated.h>\n#include <cpu_cracker.h>\n#include <stdint.h>\n\n\n\nuint32_t __h[5];\n\n\n\nvoid setup_hash(uint32_t h0,uint32_t h1,uint32_t h2,uint32_t h3,uint32_t h4){{\n\t*__h=h0;\n\t*(__h+1)=h1;\n\t*(__h+2)=h2;\n\t*(__h+3)=h3;\n\t*(__h+4)=h4;\n}}\n\n\n\nuint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\nuint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\nuint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\nuint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n")

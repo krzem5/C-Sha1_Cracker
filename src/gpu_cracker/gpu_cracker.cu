@@ -1,9 +1,9 @@
+#include <gpu_cracker.cuh>
+#include <generated.cuh>
 #include <cuda_runtime.h>
 #include <curand.h>
 #include <curand_kernel.h>
 #include <device_launch_parameters.h>
-#include <generated.h>
-#include <gpu_cracker.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -75,23 +75,26 @@ void solve_hash(sha1_t sha1,sha1_solution_t* o){
 		return;
 	}
 	CUDA_CALL(cudaMemcpyToSymbol(_d_o,o,sizeof(sha1_solution_t)));
-	setup_hash(sha1);
 	if (sha1.l==1){
+		SETUP_HASH(1,sha1);
 		printf("Starting 256 Threads...\n");
 		CUDA_GPU_CALL(_solver_single1,1,256);
 		CUDA_CALL(cudaDeviceSynchronize());
 	}
 	else if (sha1.l==2){
+		SETUP_HASH(2,sha1);
 		printf("Starting 65536 Threads...\n");
 		CUDA_GPU_CALL(_solver_single2,64,1024);
 		CUDA_CALL(cudaDeviceSynchronize());
 	}
 	else if (sha1.l==3){
+		SETUP_HASH(3,sha1);
 		printf("Starting 16777216 Threads...\n");
 		CUDA_GPU_CALL(_solver_single3,16384,1024);
 		CUDA_CALL(cudaDeviceSynchronize());
 	}
 	else if (sha1.l==4){
+		SETUP_HASH(4,sha1);
 		printf("Starting 4294967296 Threads...\n");
 		CUDA_GPU_CALL(_solver_single4,4194304,1024);
 		CUDA_CALL(cudaDeviceSynchronize());

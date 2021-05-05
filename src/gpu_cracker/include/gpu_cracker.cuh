@@ -1,8 +1,10 @@
 #ifndef __GPU_CRACKER_H__
 #define __GPU_CRACKER_H__ 1
+#include <immintrin.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#pragma intrinsic(_lrotl)
 
 
 
@@ -36,7 +38,8 @@
 #define CUDA_GPU_CALL(f,n,sz,...) (f)<<<(n),(sz)>>>(__VA_ARGS__)
 #endif
 #define DEVICE_ID 0
-#define BIT_ROT_FUNC _lrotl_gpu
+#define BIT_ROT_FUNC_SETUP _lrotl
+#define BIT_ROT_FUNC_CHECK _lrotl_gpu
 #define LOCK() \
 	do{ \
 		__syncthreads(); \
