@@ -120,6 +120,8 @@ def _gen_sha1_check_code(il,dt_v="dt",g_v="h",h_v="h"):
 				i+=1
 			if (len(l)==0):
 				return cv
+			if (cv is not None and cv["t"]==TYPE_CONST and cv["v"]==0):
+				cv=None
 			if (len(l)==1 and cv is None):
 				return l[0]
 			return {"t":TYPE_XOR,"l":l+([cv] if cv is not None else []),"_vc":_set_or([e["_vc"] for e in l])}

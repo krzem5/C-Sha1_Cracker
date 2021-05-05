@@ -38,8 +38,8 @@
 #define CUDA_GPU_CALL(f,n,sz,...) (f)<<<(n),(sz)>>>(__VA_ARGS__)
 #endif
 #define DEVICE_ID 0
-#define BIT_ROT_FUNC_SETUP _lrotl
-#define BIT_ROT_FUNC_CHECK _lrotl_gpu
+#define BIT_ROT_FUNC_SETUP(a,b) _lrotl(a,b)
+#define BIT_ROT_FUNC_CHECK(a,b) (((a)<<(b))|((a)>>(32-(b))))
 #define LOCK() \
 	do{ \
 		__syncthreads(); \
@@ -75,12 +75,6 @@ typedef struct __SHA1_SOLUTION{
 
 
 __device__ volatile int lck=0;
-
-
-
-__device__ __forceinline__ uint32_t _lrotl_gpu(uint32_t a,uint8_t b){
-	return (a<<b)|(a>>(32-b));
-}
 
 
 
