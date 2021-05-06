@@ -9,25 +9,84 @@
 #define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)
 #define _SETUP_HASH_CONCAT(l) _stp_ ## l
 #define SETUP_HASH(l,sha1) _SETUP_HASH_CONCAT(l)(sha1)
-#define _stp_1(sha1) _stp_4(sha1)
-#define _stp_2(sha1) _stp_4(sha1)
-#define _stp_3(sha1) _stp_4(sha1)
 
 
 
-__device__ uint32_t __h4[6];
+__device__ uint32_t __h1[11];
+__device__ uint32_t __h2[11];
+__device__ uint32_t __h3[11];
+__device__ uint32_t __h4[11];
+
+
+
+void _stp_1(sha1_t sha1){
+	uint32_t tmp[11];
+	tmp[0]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,2);
+	tmp[1]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,7)+3395469782;
+	tmp[2]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2);
+	tmp[3]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,7)+3400845270;
+	tmp[4]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2);
+	tmp[5]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,7)+3395469782;
+	tmp[6]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2)^(sha1.h[4]+1009589776);
+	tmp[7]=sha1.h[1]+271733879;
+	tmp[8]=BIT_ROT_FUNC_SETUP(sha1.h[1]+271733879,5)+3395469782;
+	tmp[9]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2)^(sha1.h[3]+4023233418);
+	tmp[10]=sha1.h[0]+2562383103;
+	CUDA_CALL(cudaMemcpyToSymbol(__h1,tmp,11*sizeof(uint32_t)));
+}
+
+
+
+void _stp_2(sha1_t sha1){
+	uint32_t tmp[11];
+	tmp[0]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,2);
+	tmp[1]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,7)+3395469782;
+	tmp[2]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2);
+	tmp[3]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,7)+3406220758;
+	tmp[4]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2);
+	tmp[5]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,7)+3395469782;
+	tmp[6]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2)^(sha1.h[4]+1009589776);
+	tmp[7]=sha1.h[1]+271733879;
+	tmp[8]=BIT_ROT_FUNC_SETUP(sha1.h[1]+271733879,5)+3395469782;
+	tmp[9]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2)^(sha1.h[3]+4023233418);
+	tmp[10]=sha1.h[0]+2562383103;
+	CUDA_CALL(cudaMemcpyToSymbol(__h2,tmp,11*sizeof(uint32_t)));
+}
+
+
+
+void _stp_3(sha1_t sha1){
+	uint32_t tmp[11];
+	tmp[0]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,2);
+	tmp[1]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,7)+3395469782;
+	tmp[2]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2);
+	tmp[3]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,7)+3411594198;
+	tmp[4]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2);
+	tmp[5]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,7)+3395469782;
+	tmp[6]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2)^(sha1.h[4]+1009589776);
+	tmp[7]=sha1.h[1]+271733879;
+	tmp[8]=BIT_ROT_FUNC_SETUP(sha1.h[1]+271733879,5)+3395469782;
+	tmp[9]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2)^(sha1.h[3]+4023233418);
+	tmp[10]=sha1.h[0]+2562383103;
+	CUDA_CALL(cudaMemcpyToSymbol(__h3,tmp,11*sizeof(uint32_t)));
+}
 
 
 
 void _stp_4(sha1_t sha1){
-	uint32_t tmp[6];
+	uint32_t tmp[11];
 	tmp[0]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,2);
-	tmp[1]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2);
-	tmp[2]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2);
-	tmp[3]=sha1.h[1]+271733879;
-	tmp[4]=BIT_ROT_FUNC_SETUP(sha1.h[1]+271733879,5)+3395469782;
-	tmp[5]=sha1.h[0]+2562383103;
-	CUDA_CALL(cudaMemcpyToSymbol(__h4,tmp,6*sizeof(uint32_t)));
+	tmp[1]=BIT_ROT_FUNC_SETUP(sha1.h[4]+1009589776,7)+3395469782;
+	tmp[2]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2);
+	tmp[3]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,7)+3418051222;
+	tmp[4]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2);
+	tmp[5]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,7)+3395469782;
+	tmp[6]=BIT_ROT_FUNC_SETUP(sha1.h[3]+4023233418,2)^(sha1.h[4]+1009589776);
+	tmp[7]=sha1.h[1]+271733879;
+	tmp[8]=BIT_ROT_FUNC_SETUP(sha1.h[1]+271733879,5)+3395469782;
+	tmp[9]=BIT_ROT_FUNC_SETUP(sha1.h[2]+1732584194,2)^(sha1.h[3]+4023233418);
+	tmp[10]=sha1.h[0]+2562383103;
+	CUDA_CALL(cudaMemcpyToSymbol(__h4,tmp,11*sizeof(uint32_t)));
 }
 
 
@@ -815,51 +874,42 @@ __forceinline__ __device__ uint8_t _chk_1(uint32_t o0){
 	v5=v1^v11;
 	v6=v5+v7;
 	v0=BIT_ROT_FUNC_CHECK(v8,5);
-	if (__h4[0]!=v0+v6){return 0;}
+	if (__h1[0]!=v0+v6){return 0;}
 	v16=v3^v10;
 	v2=v9^v16;
 	v11=v17^v2;
 	v7=BIT_ROT_FUNC_CHECK(o0,21);
 	v5=v7|4096;
 	v6=v5^v11;
-	v0=v6+3395469782;
+	v0=v6+__h1[1];
 	v9=v12+v0;
 	v16=BIT_ROT_FUNC_CHECK(v1,30);
 	v17=v16^v4;
 	v2=v8^v17;
-	v7=v2+v9;
-	v11=BIT_ROT_FUNC_CHECK(__h4[0],5);
-	if (__h4[1]!=v11+v7){return 0;}
-	v5=v4+3400845270;
-	v6=v16^__h4[0];
-	v12=BIT_ROT_FUNC_CHECK(v8,30);
-	v0=v12^v6;
-	v1=v0+v5;
-	v17=BIT_ROT_FUNC_CHECK(__h4[1],5);
-	if (__h4[2]!=v17+v1){return 0;}
-	v9=v3^16778240;
-	v2=v10^v9;
-	v7=v13^v2;
-	v11=v15^v7;
-	v4=v14^v11;
-	v8=v4+3395469782;
-	v6=v16+v8;
-	v5=v12^__h4[1];
-	v0=BIT_ROT_FUNC_CHECK(__h4[0],30);
-	v1=v0^v5;
-	v17=v1+v6;
-	v3=BIT_ROT_FUNC_CHECK(__h4[2],5);
-	if (__h4[3]!=v3+v17){return 0;}
-	v9=v10^3362688;
-	v13=BIT_ROT_FUNC_CHECK(o0,22);
-	v2=v13|8192;
-	v15=v2^v9;
-	v7=v15+__h4[4];
-	v14=v12+v7;
-	v11=v0^__h4[2];
-	v4=BIT_ROT_FUNC_CHECK(__h4[1],30);
-	v16=v4^v11;
-	if (__h4[5]!=v16+v14){return 0;}
+	if (__h1[2]!=v2+v9){return 0;}
+	v7=v4+__h1[3];
+	v11=v16^__h1[0];
+	v5=BIT_ROT_FUNC_CHECK(v8,30);
+	v6=v5^v11;
+	if (__h1[4]!=v6+v7){return 0;}
+	v12=v3^16778240;
+	v0=v10^v12;
+	v1=v13^v0;
+	v17=v15^v1;
+	v9=v14^v17;
+	v2=v9+__h1[5];
+	v4=v16+v2;
+	v8=v5^__h1[6];
+	if (__h1[7]!=v8+v4){return 0;}
+	v11=v10^3362688;
+	v7=BIT_ROT_FUNC_CHECK(o0,22);
+	v6=v7|8192;
+	v3=v6^v11;
+	v12=v3+__h1[8];
+	v13=v5+v12;
+	v0=BIT_ROT_FUNC_CHECK(__h1[0],30);
+	v15=v0^__h1[9];
+	if (__h1[10]!=v15+v13){return 0;}
 	return 1;
 }
 
@@ -1648,51 +1698,42 @@ __forceinline__ __device__ uint8_t _chk_2(uint32_t o0){
 	v5=v1^v11;
 	v6=v5+v7;
 	v0=BIT_ROT_FUNC_CHECK(v8,5);
-	if (__h4[0]!=v0+v6){return 0;}
+	if (__h2[0]!=v0+v6){return 0;}
 	v16=v3^v10;
 	v2=v9^v16;
 	v11=v17^v2;
 	v7=BIT_ROT_FUNC_CHECK(o0,21);
 	v5=v7|16;
 	v6=v5^v11;
-	v0=v6+3395469782;
+	v0=v6+__h2[1];
 	v9=v12+v0;
 	v16=BIT_ROT_FUNC_CHECK(v1,30);
 	v17=v16^v4;
 	v2=v8^v17;
-	v7=v2+v9;
-	v11=BIT_ROT_FUNC_CHECK(__h4[0],5);
-	if (__h4[1]!=v11+v7){return 0;}
-	v5=v4+3406220758;
-	v6=v16^__h4[0];
-	v12=BIT_ROT_FUNC_CHECK(v8,30);
-	v0=v12^v6;
-	v1=v0+v5;
-	v17=BIT_ROT_FUNC_CHECK(__h4[1],5);
-	if (__h4[2]!=v17+v1){return 0;}
-	v9=v3^33556480;
-	v2=v10^v9;
-	v7=v13^v2;
-	v11=v15^v7;
-	v4=v14^v11;
-	v8=v4+3395469782;
-	v6=v16+v8;
-	v5=v12^__h4[1];
-	v0=BIT_ROT_FUNC_CHECK(__h4[0],30);
-	v1=v0^v5;
-	v17=v1+v6;
-	v3=BIT_ROT_FUNC_CHECK(__h4[2],5);
-	if (__h4[3]!=v3+v17){return 0;}
-	v9=v10^6725376;
-	v13=BIT_ROT_FUNC_CHECK(o0,22);
-	v2=v13|32;
-	v15=v2^v9;
-	v7=v15+__h4[4];
-	v14=v12+v7;
-	v11=v0^__h4[2];
-	v4=BIT_ROT_FUNC_CHECK(__h4[1],30);
-	v16=v4^v11;
-	if (__h4[5]!=v16+v14){return 0;}
+	if (__h2[2]!=v2+v9){return 0;}
+	v7=v4+__h2[3];
+	v11=v16^__h2[0];
+	v5=BIT_ROT_FUNC_CHECK(v8,30);
+	v6=v5^v11;
+	if (__h2[4]!=v6+v7){return 0;}
+	v12=v3^33556480;
+	v0=v10^v12;
+	v1=v13^v0;
+	v17=v15^v1;
+	v9=v14^v17;
+	v2=v9+__h2[5];
+	v4=v16+v2;
+	v8=v5^__h2[6];
+	if (__h2[7]!=v8+v4){return 0;}
+	v11=v10^6725376;
+	v7=BIT_ROT_FUNC_CHECK(o0,22);
+	v6=v7|32;
+	v3=v6^v11;
+	v12=v3+__h2[8];
+	v13=v5+v12;
+	v0=BIT_ROT_FUNC_CHECK(__h2[0],30);
+	v15=v0^__h2[9];
+	if (__h2[10]!=v15+v13){return 0;}
 	return 1;
 }
 
@@ -2481,51 +2522,42 @@ __forceinline__ __device__ uint8_t _chk_3(uint32_t o0){
 	v5=v1^v11;
 	v6=v5+v7;
 	v0=BIT_ROT_FUNC_CHECK(v8,5);
-	if (__h4[0]!=v0+v6){return 0;}
+	if (__h3[0]!=v0+v6){return 0;}
 	v16=v3^v10;
 	v2=v9^v16;
 	v11=v17^v2;
 	v7=BIT_ROT_FUNC_CHECK(o0,21);
 	v5=v7|268435456;
 	v6=v5^v11;
-	v0=v6+3395469782;
+	v0=v6+__h3[1];
 	v9=v12+v0;
 	v16=BIT_ROT_FUNC_CHECK(v1,30);
 	v17=v16^v4;
 	v2=v8^v17;
-	v7=v2+v9;
-	v11=BIT_ROT_FUNC_CHECK(__h4[0],5);
-	if (__h4[1]!=v11+v7){return 0;}
-	v5=v4+3411594198;
-	v6=v16^__h4[0];
-	v12=BIT_ROT_FUNC_CHECK(v8,30);
-	v0=v12^v6;
-	v1=v0+v5;
-	v17=BIT_ROT_FUNC_CHECK(__h4[1],5);
-	if (__h4[2]!=v17+v1){return 0;}
-	v9=v3^50334720;
-	v2=v10^v9;
-	v7=v13^v2;
-	v11=v15^v7;
-	v4=v14^v11;
-	v8=v4+3395469782;
-	v6=v16+v8;
-	v5=v12^__h4[1];
-	v0=BIT_ROT_FUNC_CHECK(__h4[0],30);
-	v1=v0^v5;
-	v17=v1+v6;
-	v3=BIT_ROT_FUNC_CHECK(__h4[2],5);
-	if (__h4[3]!=v3+v17){return 0;}
-	v9=v10^5623936;
-	v13=BIT_ROT_FUNC_CHECK(o0,22);
-	v2=v13|536870912;
-	v15=v2^v9;
-	v7=v15+__h4[4];
-	v14=v12+v7;
-	v11=v0^__h4[2];
-	v4=BIT_ROT_FUNC_CHECK(__h4[1],30);
-	v16=v4^v11;
-	if (__h4[5]!=v16+v14){return 0;}
+	if (__h3[2]!=v2+v9){return 0;}
+	v7=v4+__h3[3];
+	v11=v16^__h3[0];
+	v5=BIT_ROT_FUNC_CHECK(v8,30);
+	v6=v5^v11;
+	if (__h3[4]!=v6+v7){return 0;}
+	v12=v3^50334720;
+	v0=v10^v12;
+	v1=v13^v0;
+	v17=v15^v1;
+	v9=v14^v17;
+	v2=v9+__h3[5];
+	v4=v16+v2;
+	v8=v5^__h3[6];
+	if (__h3[7]!=v8+v4){return 0;}
+	v11=v10^5623936;
+	v7=BIT_ROT_FUNC_CHECK(o0,22);
+	v6=v7|536870912;
+	v3=v6^v11;
+	v12=v3+__h3[8];
+	v13=v5+v12;
+	v0=BIT_ROT_FUNC_CHECK(__h3[0],30);
+	v15=v0^__h3[9];
+	if (__h3[10]!=v15+v13){return 0;}
 	return 1;
 }
 
@@ -3307,43 +3339,34 @@ __forceinline__ __device__ uint8_t _chk_4(uint32_t o0){
 	v7=v14^v11;
 	v2=BIT_ROT_FUNC_CHECK(o0,21);
 	v13=v2^v7;
-	v12=v13+3395469782;
+	v12=v13+__h4[1];
 	v4=v8+v12;
 	v3=BIT_ROT_FUNC_CHECK(v1,30);
 	v17=v3^v16;
 	v14=v15^v17;
-	v11=v14+v4;
-	v7=BIT_ROT_FUNC_CHECK(__h4[0],5);
-	if (__h4[1]!=v7+v11){return 0;}
-	v2=v16+3418051222;
-	v13=v3^__h4[0];
-	v8=BIT_ROT_FUNC_CHECK(v15,30);
-	v12=v8^v13;
-	v1=v12+v2;
-	v17=BIT_ROT_FUNC_CHECK(__h4[1],5);
-	if (__h4[2]!=v17+v1){return 0;}
-	v4=v10^67112960;
-	v14=v9^v4;
-	v11=v6^v14;
-	v7=v0^v11;
-	v16=v5^v7;
-	v15=v16+3395469782;
-	v13=v3+v15;
-	v2=v8^__h4[1];
-	v12=BIT_ROT_FUNC_CHECK(__h4[0],30);
-	v1=v12^v2;
-	v17=v1+v13;
-	v10=BIT_ROT_FUNC_CHECK(__h4[2],5);
-	if (__h4[3]!=v10+v17){return 0;}
-	v4=v9^13074112;
-	v6=BIT_ROT_FUNC_CHECK(o0,22);
-	v14=v6^v4;
-	v0=v14+__h4[4];
-	v11=v8+v0;
-	v5=v12^__h4[2];
-	v7=BIT_ROT_FUNC_CHECK(__h4[1],30);
-	v16=v7^v5;
-	if (__h4[5]!=v16+v11){return 0;}
+	if (__h4[2]!=v14+v4){return 0;}
+	v11=v16+__h4[3];
+	v7=v3^__h4[0];
+	v2=BIT_ROT_FUNC_CHECK(v15,30);
+	v13=v2^v7;
+	if (__h4[4]!=v13+v11){return 0;}
+	v8=v10^67112960;
+	v12=v9^v8;
+	v1=v6^v12;
+	v17=v0^v1;
+	v4=v5^v17;
+	v14=v4+__h4[5];
+	v16=v3+v14;
+	v15=v2^__h4[6];
+	if (__h4[7]!=v15+v16){return 0;}
+	v7=v9^13074112;
+	v11=BIT_ROT_FUNC_CHECK(o0,22);
+	v13=v11^v7;
+	v10=v13+__h4[8];
+	v8=v2+v10;
+	v6=BIT_ROT_FUNC_CHECK(__h4[0],30);
+	v12=v6^__h4[9];
+	if (__h4[10]!=v12+v8){return 0;}
 	return 1;
 }
 

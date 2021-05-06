@@ -35,11 +35,11 @@ def _gen_sha1_check_code(il,dt_v="dt",g_v="h",h_v="h"):
 				return eq["v"]
 			elif (eq["v"]["t"]==TYPE_CONST):
 				return {"t":TYPE_CONST,"v":((eq["v"]["v"]<<eq["i"])|(eq["v"]["v"]>>(32-eq["i"])))&0xffffffff,"_vc":set()}
-			elif (eq["v"]["t"]==TYPE_INPUT and "_TMP_FIX" not in eq["v"]):
+			elif (eq["v"]["t"]==TYPE_INPUT and len(INPUT_VARS)<25):### TMP FIX
 				INPUT_VARS.append({"t":TYPE_ROT_LEFT,"v":INPUT_VARS[eq["v"]["i"]],"i":eq["i"]})
-				return {"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set(),"_TMP_FIX":1}
+				return {"t":TYPE_INPUT,"i":len(INPUT_VARS)-1,"_vc":set()}
 			elif (eq["v"]["t"]==TYPE_ROT_LEFT):
-				i=(eq["i"]+eq["v"]["i"])%32
+				i=(eq["i"]+eq["v"]["i"])&31
 				if (i==0):
 					return eq["v"]["v"]
 				return {"t":TYPE_ROT_LEFT,"i":i,"v":eq["v"]["v"],"_vc":eq["_vc"]}
@@ -160,7 +160,7 @@ def _gen_sha1_check_code(il,dt_v="dt",g_v="h",h_v="h"):
 		return eq
 	def _print(eq,q=0):
 		def _o(s,q,t):
-			return (f"({s})" if q==1 or (q==2 and t not in [TYPE_SUM]) else s)
+			return (f"({s})" if q==1 else s)
 		if (eq["t"]==TYPE_CONST):
 			return str(eq["v"])
 		if (eq["t"] in [TYPE_REF,TYPE_OUTPUT]):
@@ -738,10 +738,10 @@ def _gen_sha1_check_code(il,dt_v="dt",g_v="h",h_v="h"):
 
 def generate():
 	with open("src/cpu_cracker/include/generated.h","w") as hf_cpu,open("src/cpu_cracker/generated.c","w") as cf_cpu,open("src/gpu_cracker/include/generated.cuh","w") as f_gpu:
-		hc1,hf1,f1=_gen_sha1_check_code(1,dt_v="sha1.h",g_v="tmp",h_v="__h4")
-		_,_,f2=_gen_sha1_check_code(2,dt_v="sha1.h",g_v="tmp",h_v="__h4")
-		_,_,f3=_gen_sha1_check_code(3,dt_v="sha1.h",g_v="tmp",h_v="__h4")
-		_,_,f4=_gen_sha1_check_code(4,dt_v="sha1.h",g_v="tmp",h_v="__h4")
+		hc1,hf1,f1=_gen_sha1_check_code(1,dt_v="sha1.h",g_v="tmp",h_v="__h1")
+		hc2,hf2,f2=_gen_sha1_check_code(2,dt_v="sha1.h",g_v="tmp",h_v="__h2")
+		hc3,hf3,f3=_gen_sha1_check_code(3,dt_v="sha1.h",g_v="tmp",h_v="__h3")
+		hc4,hf4,f4=_gen_sha1_check_code(4,dt_v="sha1.h",g_v="tmp",h_v="__h4")
 		hf_cpu.write("#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <cpu_cracker.h>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n\n\n\nvoid setup_hash(uint32_t h0,uint32_t h1,uint32_t h2,uint32_t h3,uint32_t h4);\n\n\n\nuint8_t _chk_1(uint32_t o0);\n\n\n\nuint8_t _chk_2(uint32_t o0);\n\n\n\nuint8_t _chk_3(uint32_t o0);\n\n\n\nuint8_t _chk_4(uint32_t o0);\n\n\n\n#endif")
-		f_gpu.write(f"#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <gpu_cracker.cuh>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n#define _SETUP_HASH_CONCAT(l) _stp_ ## l\n#define SETUP_HASH(l,sha1) _SETUP_HASH_CONCAT(l)(sha1)\n#define _stp_1(sha1) _stp_4(sha1)\n#define _stp_2(sha1) _stp_4(sha1)\n#define _stp_3(sha1) _stp_4(sha1)\n\n\n\n__device__ uint32_t __h4[{hc1}];\n\n\n\nvoid _stp_4(sha1_t sha1){{\n\tuint32_t tmp[{hc1}];\n\t{hf1}\n\tCUDA_CALL(cudaMemcpyToSymbol(__h4,tmp,{hc1}*sizeof(uint32_t)));\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n\n\n\n#endif\n")
+		f_gpu.write(f"#ifndef __GENERATED_H__\n#define __GENERATED_H__ 1\n#include <gpu_cracker.cuh>\n#include <stdint.h>\n\n\n\n#define _CHECK_HASH_CONCAT(l) _chk_ ## l\n#define CHECK_HASH(l,...) _CHECK_HASH_CONCAT(l)(__VA_ARGS__)\n#define _SETUP_HASH_CONCAT(l) _stp_ ## l\n#define SETUP_HASH(l,sha1) _SETUP_HASH_CONCAT(l)(sha1)\n\n\n\n__device__ uint32_t __h1[{hc1}];\n__device__ uint32_t __h2[{hc2}];\n__device__ uint32_t __h3[{hc3}];\n__device__ uint32_t __h4[{hc4}];\n\n\n\nvoid _stp_1(sha1_t sha1){{\n\tuint32_t tmp[{hc1}];\n\t{hf1}\n\tCUDA_CALL(cudaMemcpyToSymbol(__h1,tmp,{hc1}*sizeof(uint32_t)));\n}}\n\n\n\nvoid _stp_2(sha1_t sha1){{\n\tuint32_t tmp[{hc2}];\n\t{hf2}\n\tCUDA_CALL(cudaMemcpyToSymbol(__h2,tmp,{hc2}*sizeof(uint32_t)));\n}}\n\n\n\nvoid _stp_3(sha1_t sha1){{\n\tuint32_t tmp[{hc3}];\n\t{hf3}\n\tCUDA_CALL(cudaMemcpyToSymbol(__h3,tmp,{hc3}*sizeof(uint32_t)));\n}}\n\n\n\nvoid _stp_4(sha1_t sha1){{\n\tuint32_t tmp[{hc4}];\n\t{hf4}\n\tCUDA_CALL(cudaMemcpyToSymbol(__h4,tmp,{hc4}*sizeof(uint32_t)));\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\n__forceinline__ __device__ uint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n\n\n\n#endif\n")
 		cf_cpu.write(f"#include <generated.h>\n#include <cpu_cracker.h>\n#include <stdint.h>\n\n\n\nuint32_t __h[5];\n\n\n\nvoid setup_hash(uint32_t h0,uint32_t h1,uint32_t h2,uint32_t h3,uint32_t h4){{\n\t*__h=h0;\n\t*(__h+1)=h1;\n\t*(__h+2)=h2;\n\t*(__h+3)=h3;\n\t*(__h+4)=h4;\n}}\n\n\n\nuint8_t _chk_1(uint32_t o0){{\n{f1}\treturn 1;\n}}\n\n\n\nuint8_t _chk_2(uint32_t o0){{\n{f2}\treturn 1;\n}}\n\n\n\nuint8_t _chk_3(uint32_t o0){{\n{f3}\treturn 1;\n}}\n\n\n\nuint8_t _chk_4(uint32_t o0){{\n{f4}\treturn 1;\n}}\n")
