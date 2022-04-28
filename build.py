@@ -1,4 +1,3 @@
-from generate import generate
 import os
 import subprocess
 import sys
@@ -11,9 +10,6 @@ else:
 	for r,_,fl in os.walk("build"):
 		for f in fl:
 			os.remove(os.path.join(r,f))
-if ("--generate" in sys.argv):
-	print("Generating SHA1 Checking Code...")
-	generate()
 tmp=os.getcwd()
 os.chdir("build")
 if ("--gpu" in sys.argv):
